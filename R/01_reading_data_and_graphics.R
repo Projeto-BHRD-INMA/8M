@@ -1,4 +1,6 @@
 # Script to analyze data of female representativity in science
+# generating basic graphics and exporting list of women in science
+# by Sara Mortara, first version 2020-02-27
 
 ## loading packages
 library(ggplot2)
@@ -47,7 +49,11 @@ p1 <- ggplot(sex,
   theme_void() +
   theme(legend.position = "none")
 
+png("figs/figure01.png", res = 300,
+    width = 1200,
+    height = 1200)
 p1
+dev.off()
 
 # 2. Area de pesquisa ####
 area <- as.data.frame(table(res$area_pesquisa))
@@ -72,7 +78,11 @@ p2 <- ggplot(data = area.df, aes(x = reorder(area, perc), y = perc)) +
             size = 3.5) +
   theme(axis.text.y = element_text(hjust = 1.2))
 
+png("figs/figure02.png", res = 300,
+    width = 1600,
+    height = 1200)
 p2
+dev.off()
 
 # 3. Por que você acha que mulheres têm menor representatividade do que homens na ciência? (marque uma ou mais opções) ####
 
@@ -100,9 +110,13 @@ p3 <- ggplot(data = pq, aes(x = reorder(V1, n), y = n)) +
             size = 4) +
   theme(axis.text.y = element_text(hjust = 1))
 
+png("figs/figure03.png", res = 300,
+    width = 2400,
+    height = 1200)
 p3
+dev.off()
 
-# 4. Três mulheres da sua área
+# 4. Três mulheres da sua área ####
 
 res_ma <- str_split(res$mulher_area, ",") %>%
   unlist() %>%
@@ -114,7 +128,10 @@ ma_df$nomes <- ma_df$res_ma
 ma_df$nomes[str_detect(ma_df$nomes, "Graziel")] <- "Graziela Barroso"
 ma_df$nomes[str_detect(ma_df$nomes, "Leonora")] <- "Leonora Pires Costa"
 ma_df$nomes[str_detect(ma_df$nomes, "Rafaela")] <- "Rafaela Forzza"
+ma_df$nomes[str_detect(ma_df$nomes, "Nanuza")] <- "Nanuza Luiza de Menezes"
+ma_df$nomes[str_detect(ma_df$nomes, "Lenore")] <- "Leonore Fahrig"
 ma_df$nomes[str_detect(ma_df$nomes, "não")] <- NA
+ma_df$nomes[str_detect(ma_df$nomes, "Não")] <- NA
 
 ma_df2 <- aggregate(Freq ~ nomes, data = ma_df, FUN = sum)
 ma_df2 <- ma_df2[order(ma_df2$Freq, decreasing = TRUE), ]
@@ -139,5 +156,5 @@ mc_df$nomes[str_detect(mc_df$nomes, "Primavesi")] <- "Ana Maria Primavesi"
 mc_df2 <- aggregate(Freq ~ nomes, data = mc_df, FUN = sum)
 mc_df2 <- mc_df2[order(mc_df2$Freq, decreasing = TRUE), ]
 
-write.csv(mc_df2, "outputs/female_science.csv",
-          row.names = FALSE)
+# write.csv(mc_df2, "outputs/female_science.csv",
+#           row.names = FALSE)
