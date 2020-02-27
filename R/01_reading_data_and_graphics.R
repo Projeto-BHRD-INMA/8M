@@ -4,9 +4,11 @@
 
 ## loading packages
 library(ggplot2)
+library(ggpubr)
 library(dplyr)
 library(stringr)
 library(wesanderson)
+library(echarts4r)
 
 ## reading data
 res <- read.csv("data/form_responses.csv")
@@ -16,6 +18,8 @@ pq <- read.csv("data/question_why.csv",
 
 ## color pallete for graphics
 cores <-  wes_palette("Darjeeling1", 2)[2:1]
+ver <- rgb(255, 0, 0, maxColorValue = 255, alpha = 150)
+cin <- rgb(106, 126, 133, maxColorValue = 255)
 
 # altering column names
 names(res) <- c("sexo", "area_pesquisa",
@@ -26,17 +30,24 @@ names(res) <- c("sexo", "area_pesquisa",
 # 1. Sexo ####
 sex <- as.data.frame(table(res$sexo))
 
+sex$total <- c(20, 16)
+sex$total_fraction <- sex$total / sum(sex$total)
 # Compute percentages
 sex$fraction <- sex$Freq / sum(sex$Freq)
 # Compute the cumulative percentages (top of each rectangle)
 sex$ymax <- cumsum(sex$fraction)
+sex$total_ymax <- cumsum(sex$total_fraction)
 # Compute the bottom of each rectangle
 sex$ymin <- c(0, head(sex$ymax, n = -1))
+sex$total_ymin <- c(0, head(sex$total_ymax, n = -1))
 # Compute label position
 sex$labelPosition <- (sex$ymax + sex$ymin) / 2
+sex$total_labelPosition <- (sex$total_ymax + sex$total_ymin) / 2
 # Compute a good label
 sex$label <- paste0(c("mulheres", "homens"), ": ", sex$Freq)
+sex$total_label <- paste0(c("mulheres", "homens"), ": ", sex$total)
 
+sex
 # Make the plot
 p1 <- ggplot(sex,
              aes(ymax = ymax, ymin = ymin,
@@ -49,11 +60,62 @@ p1 <- ggplot(sex,
   theme_void() +
   theme(legend.position = "none")
 
+
+p1b <- ggplot(sex,
+              aes(ymax = total_ymax, ymin = total_ymin,
+                  xmax = 4, xmin = 3, fill = Var1)) +
+  geom_rect() +
+  geom_label(x = 3.5, aes(y = total_labelPosition, label = total_label),
+             size = 6) +
+  scale_fill_manual(values = cores) +
+  coord_polar(theta = "y") +
+  xlim(c(2, 4)) +
+  theme_void() +
+  theme(legend.position = "none")
+
+
 png("figs/figure01.png", res = 300,
-    width = 1200,
+    width = 2400,
     height = 1200)
-p1
+ggarrange(p1, p1b,
+          ncol = 2, nrow = 1,
+          labels = c("A. respostas aos questionários",
+                     "B. integrantes do PCI"))
 dev.off()
+
+# fazendo um infografico da proporcao de bolsistas que responderam ao questionario
+category <- data.frame(category = c("mulheres", "homens"),
+                       value = round(c(13/20, 10/16) * 100, 0),
+                       path = c("path://M21 9c0-4.97-4.03-9-9-9s-9 4.03-9 9c0 4.632 3.501 8.443 8 8.941v2.059h-3v2h3v2h2v-2h3v-2h-3v-2.059c4.499-.498 8-4.309 8-8.941zm-16 0c0-3.86 3.14-7 7-7s7 3.14 7 7-3.14 7-7 7-7-3.14-7-7z",
+                                "path://M16 2v2h3.586l-3.972 3.972c-1.54-1.231-3.489-1.972-5.614-1.972-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-2.125-.741-4.074-1.972-5.614l3.972-3.972v3.586h2v-7h-7zm-6 20c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7z"))
+
+my_plot <- category %>%
+  e_charts(category) %>%
+  e_x_axis(splitLine = list(show = FALSE),
+           axisTick = list(show = FALSE),
+           axisLine = list(show = FALSE),
+           axisLabel = list(show = FALSE)) %>%
+  e_y_axis(max = 100,
+           splitLine = list(show = FALSE),
+           axisTick = list(show = FALSE),
+           axisLine = list(show = FALSE),
+           axisLabel = list(show = FALSE)) %>%
+  e_color(color = c(cores[2], ver)) %>%
+  e_pictorial(value, symbol = path, z = 10, name = 'realValue',
+              symbolBoundingData = 100, symbolClip = TRUE) %>%
+  e_pictorial(value, symbol = path, name = 'background',
+              symbolBoundingData = 100) %>%
+  e_labels(position = "bottom", offset = c(0, 10),
+           textStyle = list(fontSize = 20,
+                            fontFamily = 'Arial',
+                            fontWeight = 'bold',
+                            color = cores[2]),
+           formatter = "{@[1]}% {@[0]}") %>%
+  e_legend(show = FALSE) %>%
+  e_theme("westeros")
+
+# saved using rstudio interface 462 x 256
+my_plot
 
 # 2. Area de pesquisa ####
 area <- as.data.frame(table(res$area_pesquisa))
@@ -64,10 +126,9 @@ area$area[area$area
 area.df <- aggregate(Freq ~ area, FUN = sum, data = area)
 area.df$perc <- round(area.df$Freq / sum(area.df$Freq), 2) * 100
 area.df$label <- paste(area.df$perc, "%")
-ama <- wes_palette("Darjeeling1", 5)[3]
 
 p2 <- ggplot(data = area.df, aes(x = reorder(area, perc), y = perc)) +
-  geom_bar(stat = "identity", fill = ama) +
+  geom_bar(stat = "identity", fill = cin) +
   labs(x = "", y = "Respostas %") +
   coord_flip() +
   theme_void() +
@@ -97,9 +158,8 @@ n <- sum(count)
 
 pq$n <- sapply(pq$V1, pq_count)
 
-
 p3 <- ggplot(data = pq, aes(x = reorder(V1, n), y = n)) +
-  geom_bar(stat = "identity", fill = ama) +
+  geom_bar(stat = "identity", fill = cin) +
   labs(x = "", y = "Respostas %") +
   coord_flip() +
   theme_void() +
@@ -107,8 +167,10 @@ p3 <- ggplot(data = pq, aes(x = reorder(V1, n), y = n)) +
             color = "black",
             hjust = 1.2,
             #position = position_dodge(0.9),
-            size = 4) +
+            size = 5) +
   theme(axis.text.y = element_text(hjust = 1))
+
+p3
 
 png("figs/figure03.png", res = 300,
     width = 2400,
