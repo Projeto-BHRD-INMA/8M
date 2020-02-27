@@ -18,7 +18,7 @@ pq <- read.csv("data/question_why.csv",
 
 ## color pallete for graphics
 cores <-  wes_palette("Darjeeling1", 2)[2:1]
-ver <- rgb(255, 0, 0, maxColorValue = 255, alpha = 150)
+ver <- rgb(255, 0, 0, maxColorValue = 255, alpha = 100)
 cin <- rgb(106, 126, 133, maxColorValue = 255)
 
 # altering column names
@@ -85,7 +85,7 @@ dev.off()
 
 # fazendo um infografico da proporcao de bolsistas que responderam ao questionario
 category <- data.frame(category = c("mulheres", "homens"),
-                       value = round(c(13/20, 10/16) * 100, 0),
+                       value = round(c(13/17, 10/16) * 100, 0),
                        path = c("path://M21 9c0-4.97-4.03-9-9-9s-9 4.03-9 9c0 4.632 3.501 8.443 8 8.941v2.059h-3v2h3v2h2v-2h3v-2h-3v-2.059c4.499-.498 8-4.309 8-8.941zm-16 0c0-3.86 3.14-7 7-7s7 3.14 7 7-3.14 7-7 7-7-3.14-7-7z",
                                 "path://M16 2v2h3.586l-3.972 3.972c-1.54-1.231-3.489-1.972-5.614-1.972-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-2.125-.741-4.074-1.972-5.614l3.972-3.972v3.586h2v-7h-7zm-6 20c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7z"))
 
@@ -106,11 +106,11 @@ my_plot <- category %>%
   e_pictorial(value, symbol = path, name = 'background',
               symbolBoundingData = 100) %>%
   e_labels(position = "bottom", offset = c(0, 10),
-           textStyle = list(fontSize = 20,
+           textStyle = list(fontSize = 42,
                             fontFamily = 'Arial',
                             fontWeight = 'bold',
                             color = cores[2]),
-           formatter = "{@[1]}% {@[0]}") %>%
+           formatter = "{@[1]}%") %>%
   e_legend(show = FALSE) %>%
   e_theme("westeros")
 
@@ -158,8 +158,10 @@ n <- sum(count)
 
 pq$n <- sapply(pq$V1, pq_count)
 
-p3 <- ggplot(data = pq, aes(x = reorder(V1, n), y = n)) +
-  geom_bar(stat = "identity", fill = cin) +
+pq
+
+p3 <- ggplot(data = pq, aes(x = reorder(V2, n), y = n)) +
+  geom_histogram(stat = "identity", fill = cin, binwidth = .2) + #width = .5) +
   labs(x = "", y = "Respostas %") +
   coord_flip() +
   theme_void() +
@@ -167,8 +169,9 @@ p3 <- ggplot(data = pq, aes(x = reorder(V1, n), y = n)) +
             color = "black",
             hjust = 1.2,
             #position = position_dodge(0.9),
-            size = 5) +
-  theme(axis.text.y = element_text(hjust = 1))
+            size = 7.5) +
+  theme(axis.text.y = element_text(hjust = 1.1,
+                                   size = 20))
 
 p3
 
