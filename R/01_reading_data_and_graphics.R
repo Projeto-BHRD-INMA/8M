@@ -161,7 +161,7 @@ pq$n <- sapply(pq$V1, pq_count)
 pq
 
 p3 <- ggplot(data = pq, aes(x = reorder(V2, n), y = n)) +
-  geom_histogram(stat = "identity", fill = cin, binwidth = .2) + #width = .5) +
+  geom_histogram(stat = "identity", fill = "grey", alpha = 0.6) +
   labs(x = "", y = "Respostas %") +
   coord_flip() +
   theme_void() +
@@ -176,8 +176,8 @@ p3 <- ggplot(data = pq, aes(x = reorder(V2, n), y = n)) +
 p3
 
 png("figs/figure03.png", res = 300,
-    width = 2400,
-    height = 1200)
+    width = 2600,
+    height = 600)
 p3
 dev.off()
 
