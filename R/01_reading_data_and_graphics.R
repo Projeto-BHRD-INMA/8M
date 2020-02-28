@@ -224,3 +224,9 @@ mc_df2 <- mc_df2[order(mc_df2$Freq, decreasing = TRUE), ]
 
 write.csv(mc_df2, "outputs/female_science.csv",
            row.names = FALSE)
+
+## 6. genero no artigo
+gen <- as.data.frame(table(res$genero_artigo))
+gen$fraction <- gen$Freq/nrow(res)
+
+gen
