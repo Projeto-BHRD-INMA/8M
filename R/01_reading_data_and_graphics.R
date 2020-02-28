@@ -217,9 +217,10 @@ mc_df$nomes <- mc_df$res_mc
 mc_df$nomes[str_detect(mc_df$nomes, "Marie")] <- "Marie Curie"
 mc_df$nomes[str_detect(mc_df$nomes, "Jane")] <- "Jane Goodall"
 mc_df$nomes[str_detect(mc_df$nomes, "Primavesi")] <- "Ana Maria Primavesi"
+mc_df$nomes[str_detect(mc_df$nomes, "Rosalind")] <- "Rosalind Franklin"
 
 mc_df2 <- aggregate(Freq ~ nomes, data = mc_df, FUN = sum)
 mc_df2 <- mc_df2[order(mc_df2$Freq, decreasing = TRUE), ]
 
-# write.csv(mc_df2, "outputs/female_science.csv",
-#           row.names = FALSE)
+write.csv(mc_df2, "outputs/female_science.csv",
+           row.names = FALSE)
